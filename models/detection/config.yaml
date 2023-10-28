@@ -1,0 +1,7 @@
+path: C:/Users/admin/Desktop/Projects/dopravni-znacky/data
+train: images/train
+test: images/test
+val: images/test
+
+names:
+  0: sign
