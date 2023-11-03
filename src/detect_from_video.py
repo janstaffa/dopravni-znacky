@@ -6,7 +6,7 @@ from utils.time_utils import StopWatch
 import numpy as np
 
 # Load a model
-model = YOLO("models/detection/runs/detect/train/weights/best.pt")  # load a pretrained model (recommended for training)
+model = YOLO("models/detection/runs/detect/train_singleclass_50batch/weights/best.pt")  # load a pretrained model (recommended for training)
 ACCURACY_DETECT_THRESHOLD = 0.8
 UPSCALE_WIDTH = 250.0
 
@@ -24,13 +24,14 @@ if (cap.isOpened()== False):
 cv2.namedWindow('Detail', cv2.WINDOW_AUTOSIZE)
 cv2.namedWindow('Feed', cv2.WINDOW_AUTOSIZE)
 
+all_fps = []
 lastFrameTime = time.time()
 # Read until video is completed
 while(cap.isOpened()):
   # Capture frame-by-frame
   ret, frame = cap.read()
   if ret == True:
-    # croppedFrame = frame[0:1359, 0:799]
+    # croppedFrame = frame[200:400, 100:300]
     # frame = croppedFrame
     results = model(frame, verbose=False)  # predict on an image
 
@@ -67,10 +68,13 @@ while(cap.isOpened()):
             
     currentTime = time.time()
     currentFps =  1 / (currentTime - lastFrameTime)
+    all_fps.append(currentFps)
     lastFrameTime = currentTime
     cv2.putText(frame, "FPS - " + str(round(currentFps, 2)), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
 
     cv2.imshow("Feed", frame)
+
+    print(f'Average FPS: {sum(all_fps)/len(all_fps)}')
     
     if cv2.waitKey(25) & 0xFF == ord('q'):
         break
