@@ -1,4 +1,4 @@
-path: C:/Users/admin/Desktop/Projects/dopravni-znacky/data
+path: C:/Users/admin/Desktop/Projects/dopravni-znacky/data/detection
 train: images/train
 test: images/test
 val: images/test

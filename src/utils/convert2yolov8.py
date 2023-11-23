@@ -1,8 +1,8 @@
 
 
 
-path = "./data/test_labels.csv"
-out_path = "./data/labels/test/"
+path = "./data/detection/test_labels.csv"
+out_path = "./data/detection/labels/test/"
 
 img_w = 1360
 img_h = 800
@@ -20,10 +20,10 @@ for l in lines:
 dict = {}
 for l in labels:
     if l[0] in dict:
-        dict[l[0]].append([l[1], l[2], l[3], l[4]])
+        dict[l[0]].append([l[1], l[2], l[3], l[4], l[5]])
         continue
     
-    dict[l[0]] = [[l[1], l[2], l[3], l[4]]]
+    dict[l[0]] = [[l[1], l[2], l[3], l[4], l[5]]]
 
 for imageName, boxes in dict.items():
     name = imageName.replace(".jpg", "")
@@ -43,7 +43,7 @@ for imageName, boxes in dict.items():
             height = (ymax - ymin) / img_h
     
 
+            class_id = int(b[4])
 
-
-            annotation += '0 {} {} {} {}\n'.format(xcenter, ycenter, width, height)
+            annotation += '{} {} {} {} {}\n'.format(class_id, xcenter, ycenter, width, height)
         new_file.write(annotation)
