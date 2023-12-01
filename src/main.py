@@ -9,7 +9,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 import os
-from constants import DATA_CLASSES
+from constants import DATA_CLASSES_CZ
 import threading
 
 
@@ -29,6 +29,7 @@ RECOGNITION_TRESHOLD = 0.7
 input_video_path = sys.argv[1]
 
 computed_frame = None
+
 
 def detect_from_frame(frame):
     # t = time.time() * 1000
@@ -79,7 +80,8 @@ def detect_from_frame(frame):
                 cv2.putText(frame, str(round(score, 2)), (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
                 
                 if prediction:
-                    cv2.putText(frame, DATA_CLASSES[prediction], (int(x1), int(y2 + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                    cv2.putText(frame, DATA_CLASSES_CZ[prediction], (int(x1), int(y2 + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                   
 
 
             # column = np.concatenate(details, axis=0)
@@ -100,7 +102,7 @@ if (cap.isOpened() == False):
   print("Error opening video stream or file")
   exit(1)
 
-cv2.namedWindow('Detail', cv2.WINDOW_AUTOSIZE)
+# cv2.namedWindow('Detail', cv2.WINDOW_AUTOSIZE)
 cv2.namedWindow('Feed', cv2.WINDOW_AUTOSIZE)
 
 lastFrameTime = time.time() * 1000
