@@ -1,3 +1,4 @@
+import os
 import threading
 from ultralytics import YOLO
 import cv2
@@ -6,6 +7,14 @@ import time
 from constants import DATA_CLASSES_CZ
 import numpy as np
 from utils.utils import Rectangle, SignDetection, is_rectangle_bounded
+import gtts
+from io import BytesIO
+from playsound import playsound
+import tempfile
+
+
+
+
 
 # Load a model
 model = YOLO("runs/detect/train/weights/best.pt")  # load a pretrained model (recommended for training)
@@ -23,15 +32,40 @@ PREVIEW_SIZE = 100
 
 
 # sign matching
-ACCEPTED_PADDING = 20
+ACCEPTED_PADDING = 50
 START_TIMEOUT = 5
 
 detected_signs = []
 sign_timeouts = []
+has_played_sign = []
+
+
+
+speaking_signs = []
+def say_sign_name(name):
+  if name in speaking_signs:
+    return
+  
+  speaking_signs.append(name)
+  #print("added " + name)
+  try:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+      tts = gtts.gTTS(name, "cz")
+      tts.save(tmp.name)
+      tmp.close()
+      playsound(tmp.name)
+      speaking_signs.remove(name)
+      #print("removed " + name)
+  except:
+     pass
+    
+
+
 
 def detect_from_frame(frame):
     global sign_timeouts
     global detected_signs
+    global has_played_sign
 
     # croppedFrame = frame[:640, :640]
     # frame = croppedFrame
@@ -52,15 +86,15 @@ def detect_from_frame(frame):
             if score < ACCURACY_DETECT_THRESHOLD:
                continue
 
-            sign_detection = SignDetection(x1, y1, x2, y2, class_id, score)
+            sign_detection = SignDetection(x1, y1, x2, y2, int(class_id), score)
             
             found = False
             for i, sd in enumerate(detected_signs):
-               if sd != sign_detection.signClass:
+               if sd.signClass != sign_detection.signClass:
                   continue
                
-               bound_rect = sd.rect.pad(ACCEPTED_PADDING) 
 
+               bound_rect = sd.rect.pad(ACCEPTED_PADDING) 
                if is_rectangle_bounded(sign_detection.rect, bound_rect):
                   detected_signs[i] = sign_detection
                   sign_timeouts[i] = START_TIMEOUT
@@ -68,8 +102,9 @@ def detect_from_frame(frame):
                   break
                
             if not found:
-               detected_signs.append(sign_detection)
-               sign_timeouts.append(START_TIMEOUT)
+              detected_signs.append(sign_detection)
+              sign_timeouts.append(START_TIMEOUT)
+              has_played_sign.append(False)
 
 
            #extractedSign = frame[int(y1):int(y2), int(x1):int(x2)]
@@ -87,24 +122,53 @@ def detect_from_frame(frame):
     
     new_signs = []
     new_timeouts = []
+    new_has_played_sign = []
+    #print(has_played_sign)
     for i, t in enumerate(sign_timeouts):
       if t <= 1:
         continue
       new_signs.append(detected_signs[i])
       new_timeouts.append(t-1)
+      
+      played = has_played_sign[i]
+      if played == False:
+        speak_thread = threading.Thread(target=say_sign_name, args=(DATA_CLASSES_CZ[detected_signs[i].signClass],))
+        speak_thread.start()
+        played = True
+      
+      new_has_played_sign.append(played)
 
     sign_timeouts = new_timeouts
     detected_signs = new_signs
-    
+    has_played_sign = new_has_played_sign
+
+
+    displayed = []
     for sd in detected_signs:
       rect, sign_class, score = sd.rect, sd.signClass, sd.confidence
+      
+      
       x1, y1, w, h = rect.x, rect.y, rect.w, rect.h
       x2, y2 = x1 + w, y1 + h
 
+
       cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 1)
       cv2.putText(frame, str(round(score, 2)), (int(x1), int(y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1, cv2.LINE_AA)
-      cv2.putText(frame, DATA_CLASSES_CZ[sign_class], (int(x1), int(y2 + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
+      # draw sign name text
+      sign_name = DATA_CLASSES_CZ[sign_class]
+
+      (text_width, text_height) = cv2.getTextSize(sign_name, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, thickness=1)[0]
+      cv2.rectangle(frame, (int(x1), int(y2)), (int(x1) + text_width, int(y2 + 15) + text_height), (255, 0, 0), cv2.FILLED)
+      cv2.putText(frame, sign_name, (int(x1), int(y2 + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
+      # check if already displayed
+      if sign_class in displayed:
+         continue
+      displayed.append(sign_class)
+
+
+      
       preview_path = "data/Meta/"+str(int(sign_class))+".png"
       preview = cv2.imread(preview_path)
           
@@ -113,6 +177,7 @@ def detect_from_frame(frame):
           
       new_preview_offset = preview_offset + PREVIEW_SIZE
 
+      
       for c in range(0, 3):
         frame[preview_offset:new_preview_offset, frame.shape[1]-PREVIEW_SIZE:frame.shape[1], c] = preview_resized[:, :, c]
             
@@ -170,7 +235,7 @@ while(cap.isOpened()):
 
 
   if computed_frame is not None and len(computed_frame) > 0:
-      cv2.imshow('Feed', computed_frame)
+      cv2.imshow('Detekce dopravních značek', computed_frame)
     
             # column = np.concatenate(details, axis=0)
             # cv2.imshow("Detail", column)
@@ -206,3 +271,6 @@ cap.release()
 comp_thread.join()
  
 cv2.destroyAllWindows()
+
+
+

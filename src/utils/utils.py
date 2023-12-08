@@ -29,10 +29,9 @@ class Rectangle:
     self.h = h
 
   def pad(self, pad):
-    self.x -= pad
-    self.y -= pad
-    self.w += pad
-    self.h += pad 
+    new_rect = Rectangle(self.x - pad, self.y - pad, self.w + pad, self.h + pad)
+    
+    return new_rect
 
 
 def is_rectangle_bounded(rec, bound):
