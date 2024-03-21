@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dopravní značky</string>
+
+    <string name="alt_bottom_sheet_chevron">Bottom sheet expandable indicator</string>
+
+    <string name="alt_bottom_sheet_max_results_button_minus">Decreasing maxium detected results
+        button</string>
+    <string name="alt_bottom_sheet_max_results_button_plus">Increasing maxium detected results
+        button</string>
+    <string name="alt_bottom_sheet_threshold_button_minus">Decreasing threshold of detected object
+        results button</string>
+    <string name="alt_bottom_sheet_threshold_button_plus">Increasing threshold of detected object
+        results button</string>
+    <string name="alt_bottom_sheet_thread_button_minus">Decrease the number of threads used</string>
+    <string name="alt_bottom_sheet_thread_button_plus">Increase the number of threads used</string>
+
+    <string name="label_interence_time">Inference Time</string>
+    <string name="label_fps">Frames per Second</string>
+    <string name="label_confidence_threshold">Threshold</string>
+    <string name="label_max_results">Max Results</string>
+    <string name="label_threads">Number of Threads</string>
+    <string name="label_delegate">Delegate</string>
+    <string name="label_models">ML Model</string>
+    <string name="options">Options</string>
+
+    <string-array name="delegate_spinner_titles">
+        <item>CPU</item>
+        <item>GPU</item>
+        <item>NNAPI</item>
+    </string-array>
+
+    <string-array name="models_spinner_titles">
+        <item>DZv01</item>
+    </string-array>
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,1 @@
+python models/research/object_detection/export_tflite_graph_tf2.py --trained_checkpoint_dir=../dataset/model/training --output_directory=../dataset/model --pipeline_config_path=../dataset/config/pipeline_file.config
