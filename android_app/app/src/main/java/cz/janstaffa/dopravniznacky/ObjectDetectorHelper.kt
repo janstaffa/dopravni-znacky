@@ -90,15 +90,20 @@ class ObjectDetectorHelper(
 
         optionsBuilder.setBaseOptions(baseOptionsBuilder.build())
 
-        val modelName =
-            when (currentModel) {
-                MODEL_DZV01 -> "model_dzv01.tflite"
-                else -> "model_dzv01.tflite"
+        val modelName = when (currentModel) {
+                MODEL_DZV2_MOBNET_NATIVE_Q -> "model_dzv2_mobilenet_320x320_quant.tflite"
+                MODEL_DZV2_MOBNET_RESIZED_Q -> "model_dzv2_mobilenet_640x480_quant.tflite"
+                MODEL_DZV2_MOBNET_NATIVE -> "model_dzv2_mobilenet_320x320.tflite"
+                MODEL_DZV2_MOBNET_RESIZED -> "model_dzv2_mobilenet_640x480.tflite"
+                MODEL_DZV2_EFFICENTDET_NATIVE -> "model_dzv2_efficentdet_512x512.tflite"
+                MODEL_DZV2_MOBNET_FPNLITE_RESIZED -> "model_dzv2_mobilenet_fpnlite_640x480.tflite"
+                MODEL_DZV1 -> "model_dzv1.tflite"
+                else -> "model_dzv2_mobilenet_320x320_quant.tflite"
             }
 
         try {
             objectDetector =
-                ObjectDetector.createFromFileAndOptions(context, "model_dzv02-native_quant.tflite", optionsBuilder.build())
+                ObjectDetector.createFromFileAndOptions(context, modelName, optionsBuilder.build())
         } catch (e: Exception) {
             objectDetectorListener.onError(
                 "Object detector failed to initialize. See error logs for details"
@@ -153,6 +158,13 @@ class ObjectDetectorHelper(
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
         const val DELEGATE_NNAPI = 2
-        const val MODEL_DZV01 = 0
+
+        const val MODEL_DZV2_MOBNET_NATIVE_Q = 0
+        const val MODEL_DZV2_MOBNET_RESIZED_Q = 1
+        const val MODEL_DZV2_MOBNET_NATIVE = 2
+        const val MODEL_DZV2_MOBNET_RESIZED = 3
+        const val MODEL_DZV2_EFFICENTDET_NATIVE = 4
+        const val MODEL_DZV2_MOBNET_FPNLITE_RESIZED = 5
+        const val MODEL_DZV1 = 6
     }
 }

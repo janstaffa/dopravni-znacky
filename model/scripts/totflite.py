@@ -41,7 +41,7 @@ if (
     parser.print_help()
     exit(1)
 
-print("\n EXPORTING MODEL...\n")
+print("\nEXPORTING MODEL...\n")
 # Export plain Tflite model
 converter = tf.lite.TFLiteConverter.from_saved_model(args.model)
 # converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -63,7 +63,7 @@ width = input_details[0]["shape"][2]
 files_to_process = [(tflite_model_out_path, False)]
 
 if args.quantize == True:
-    print("\n QUANTIZING MODEL...\n")
+    print("\nQUANTIZING MODEL...\n")
     quant_image_list = glob.glob(args.representative_data + "/*.png")
 
     def representative_data_gen():
@@ -103,11 +103,13 @@ if args.quantize == True:
     files_to_process.append((quant_file_out_path, True))
 
 
-print("\n ADDING METADATA...\n")
+print("\nADDING METADATA...\n")
 for f, is_quantized in files_to_process:
+    
+    # ref: https://gist.github.com/4PixelsDev/7400df5cd6f004c4d630c849660577d6
     # Creates model info.
     model_meta = _metadata_fb.ModelMetadataT()
-    model_meta.name = "DZ model V2" + "(quantized)" if is_quantized else ""
+    model_meta.name = "DZ model V2" + ("(quantized)" if is_quantized else "")
     model_meta.description = (
         "Detects czech traffic signs in images. "
         "Base model - MobilenetV2 with images resized to native input shape. "
@@ -245,4 +247,4 @@ for f, is_quantized in files_to_process:
         displayer = _metadata.MetadataDisplayer.with_model_file(f)
         print(displayer.get_metadata_json())
 
-print("\n DONE")
+print("\nDONE")

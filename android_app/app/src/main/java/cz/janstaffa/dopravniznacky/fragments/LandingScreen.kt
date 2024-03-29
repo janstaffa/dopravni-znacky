@@ -1,5 +1,7 @@
 package cz.janstaffa.dopravniznacky.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -42,5 +44,14 @@ class LandingScreen : Fragment() {
             )
 
         }
+
+        landingScreenBinding!!.aboutBtn.setOnClickListener {
+            val uri = Uri.parse(ABOUT_URL)
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            startActivity(intent)
+        }
+    }
+    companion object {
+        const val ABOUT_URL = "https://github.com/janstaffa/dopravni-znacky"
     }
 }

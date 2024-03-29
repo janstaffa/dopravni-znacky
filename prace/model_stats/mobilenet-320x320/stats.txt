@@ -1,0 +1,26 @@
+Tested on test dataset with: 500 files and 848 annotations
+
+INFERENCE TIME:
+ Average inference time: 20.59ms
+ Lowest inference time: 15.99ms
+ Highest inference time: 31.24ms
+
+CONFIDENCE:
+ Average confidence: 0.16
+ Lowest confidence: 0.01
+ Highest confidence: 0.99
+
+@IOU=.5
+CUMULATIVE METRICS:
+ mAP: 0.899
+ Average precission: 0.168
+ Average recall: 0.958
+ Average F1: 0.285
+
+
+@IOU=.5:.95:.05
+CUMULATIVE METRICS:
+ mAP: 0.663
+ Average precission: 0.13
+ Average recall: 0.74
+ Average F1: 0.22

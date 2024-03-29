@@ -31,8 +31,13 @@
     </string-array>
 
     <string-array name="models_spinner_titles">
-        <item>DZv01</item>
-        <item>DZv02 native</item>
+        <item>DZv2Q MobilenetV2 320x320 Quantized (better performance)</item>
+        <item>DZv2Q MobilenetV2 640x480 Quantized (better accuracy)</item>
+        <item>DZv2 MobilenetV2 320x320 (better performance)</item>
+        <item>DZv2 MobilenetV2 640x480 (better accuracy)</item>
+        <item>DZv2 Efficentdet 512x512</item>
+        <item>DZv2 MobilenetV2 FPNlite 640x480 (undertrained)</item>
+        <item>DZv1 640x480 (obsolete)</item>
     </string-array>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
