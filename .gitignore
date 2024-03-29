@@ -1,3 +1,4 @@
 /dev
 /neural
 **/*.mp4
+/android_keystore.jks

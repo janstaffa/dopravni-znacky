@@ -38,7 +38,6 @@ class LandingScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         landingScreenBinding!!.continueToAppBtn.setOnClickListener {
-            Log.d("LandingScreen", "clicked")
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
                 LandingScreenDirections.actionLandingScreenToCameraFragment()
             )

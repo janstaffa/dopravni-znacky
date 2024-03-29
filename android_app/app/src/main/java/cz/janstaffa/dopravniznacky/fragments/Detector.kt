@@ -136,10 +136,7 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
         textToSpeech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                Log.d("TextToSpeech", "Initialization Success")
                 textToSpeech.language = Locale.ENGLISH
-            } else {
-                Log.d("TextToSpeech", "Initialization Failed")
             }
         }
 
