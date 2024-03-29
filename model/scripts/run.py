@@ -174,7 +174,7 @@ def tflite_detect_images(
 
 PATH_TO_IMAGES = "../dataset/data/data/Test"  # Path to test images folder
 # PATH_TO_MODEL = "tflite/dz_model4_meta.tflite"  # Path to .tflite model file
-PATH_TO_MODEL = "saved_models/efficentdet-resized/model_meta.tflite"  # Path to .tflite model file
+PATH_TO_MODEL = "saved_models/mobilenet-resized/model_quant.tflite"  # Path to .tflite model file
 min_conf_threshold = 0.2  # Confidence threshold (try changing this to 0.01 if you don't see any detection results)
 images_to_test = 11  # Number of images to run detection on
 

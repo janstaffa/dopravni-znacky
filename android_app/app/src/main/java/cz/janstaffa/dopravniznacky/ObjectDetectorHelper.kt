@@ -98,7 +98,7 @@ class ObjectDetectorHelper(
 
         try {
             objectDetector =
-                ObjectDetector.createFromFileAndOptions(context, modelName, optionsBuilder.build())
+                ObjectDetector.createFromFileAndOptions(context, "model_dzv02-native_quant.tflite", optionsBuilder.build())
         } catch (e: Exception) {
             objectDetectorListener.onError(
                 "Object detector failed to initialize. See error logs for details"

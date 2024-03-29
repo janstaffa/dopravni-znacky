@@ -23,6 +23,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import java.util.LinkedList
@@ -99,6 +100,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        Log.d("OverlayView", "Drawing")
 
         for (result in results) {
             val boundingBox = result.boundingBox

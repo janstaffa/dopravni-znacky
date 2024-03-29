@@ -374,6 +374,8 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         imageHeight: Int,
         imageWidth: Int
     ) {
+
+        Log.d(TAG, "Reading results")
         val calendar = Calendar.getInstance()
 
         if (lastFrameTime == 0L) {
@@ -396,6 +398,7 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             lastFrameTime = now
         }
 
+        Log.d(TAG, "A")
         activity?.runOnUiThread {
             fragmentCameraBinding.optionsLayoutWrap.inferenceTimeVal.text =
                 String.format("%d ms", inferenceTime)
@@ -407,11 +410,14 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                 String.format("Inference time: %d ms", inferenceTime)
 
             fragmentCameraBinding.signDetailDisplay.removeAllViews()
+            Log.d(TAG, "B")
 
             results?.let {
+                Log.d(TAG, "C")
                 for (res in it) {
+                    Log.d(TAG, res.categories[0].toString())
                     val classId = res.categories[0].label.trim().toInt()
-                    var signExists = detectedSigns.any { x ->
+                    val signExists = detectedSigns.any { x ->
                         x.signId == classId
                     }
 
@@ -428,6 +434,7 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                     }
                 }
 
+                Log.d(TAG, "D")
                 if (detectedSigns.size > 0)
                     fragmentCameraBinding.noSignsDetectedText.visibility = View.INVISIBLE
                 else
@@ -445,7 +452,11 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                     signImage.setPadding(5)
                     fragmentCameraBinding.signDetailDisplay.addView(signImage)
                 }
+                Log.d(TAG, "E")
+
             }
+
+            Log.d(TAG, "Sending to camera fragment")
             // Pass necessary information to OverlayView for drawing on the canvas
             fragmentCameraBinding.overlay.setResults(
                 results ?: LinkedList<Detection>(),
