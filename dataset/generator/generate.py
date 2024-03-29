@@ -8,21 +8,38 @@ import os
 import csv
 
 
+# Maximum number of signs added to one image
 MAX_SIGNS = 3
+# How many times will the same image be used for generation
 IMAGE_REUSE_COUNT = 2
+
+# How bright can the background behind the inserted sign be (tries to avoid placing signs in the sky)
 ACCEPTED_BRIGHTNESS_THRESHOLD = 200.0
 
 ANNOTATION_FILE_NAME = "annotations.csv"
 ANNOTATION_FILE_HEADER = ["file", "xmin", "ymin", "xmax", "ymax", "class"]
 
+
+# How rare will be an image with more signs (linear function x*c where c is the following constant)
 SIGN_COUNT_INCREASE_STEEPNESS = 5
 
+# The sign will not be placed in this area from the bottom of the image
+BOTTOM_OFFSET = 130
+
+DATASET_IMG_SHAPE = (640, 480)
+
+# How much will the bias affect sign placement
+BIAS_APPLICATION_MULTIPLIER = 1 / 2
 
 parser = argparse.ArgumentParser()
 
 # -db DATABASE -u USERNAME -p PASSWORD -size 20
 parser.add_argument("-in", "--input", help="Input directory (should contain images)")
 parser.add_argument("-out", "--output", help="Output directory")
+parser.add_argument("-off", "--offset", help="Starting offset for file numbering")
+parser.add_argument(
+    "-b", "--bias", help="Bias file containing bias values for random sign placement"
+)
 
 args = parser.parse_args()
 
@@ -70,9 +87,39 @@ for f in os.listdir(args.input):
         files.append(os.path.join(args.input, f))
 
 random.shuffle(files)
+
 count = 1
+if args.offset != None:
+    count = int(args.offset)
 
+uses_bias = False
+bias_weights = []
+pos_choices = []
 
+# Generate an array of all possible points on the image and create a corresponding array of biases
+if args.bias != None:
+    uses_bias = True
+    bias_file = open(args.bias)
+    y = 0
+    for r in bias_file.readlines():
+        if y == DATASET_IMG_SHAPE[1] - BOTTOM_OFFSET:
+            break
+
+        x = 0
+        for v in r.split(" "):
+            if x == DATASET_IMG_SHAPE[0]:
+                break
+
+            if v.strip() == "":
+                continue
+
+            pos_choices.append((x, y))
+            bias_weights.append(int(v) * BIAS_APPLICATION_MULTIPLIER + 1)
+
+            x += 1
+        y += 1
+
+# print(bias_values, choices)
 for file in files:
     background = Image.open(file)
 
@@ -93,18 +140,38 @@ for file in files:
         i = random.randint(0, len(sign_images) - 1)
 
         sign_image, class_id = sign_images[i]
-        sign_img = generate_variants.generate_sign_variant(sign_image)
+
+        _sign_image = sign_image.copy()
+        generated_sign_img = generate_variants.generate_sign_variant(_sign_image)
 
         # Find a good placement
         while True:
-            pos = rand_pos(
-                sign_img.width, sign_img.height, background.width, background.height
-            )
+            if uses_bias:
+                while True:
+                    pos = random.choices(pos_choices, weights=bias_weights, k=1)[0]
+                    # Check if the full sign will fit in the image
+                    if (
+                        pos[0] + generated_sign_img.width < DATASET_IMG_SHAPE[0]
+                        and pos[1] + generated_sign_img.height < DATASET_IMG_SHAPE[1]
+                    ):
+                        break
+            else:
+                pos = rand_pos(
+                    generated_sign_img.width,
+                    generated_sign_img.height,
+                    background.width,
+                    background.height - BOTTOM_OFFSET,
+                )
 
             intersects = False
             for ps in placed_signs:
                 if rects_intersect(
-                    (pos[0], pos[1], pos[0] + sign_img.width, pos[1] + sign_img.height),
+                    (
+                        pos[0],
+                        pos[1],
+                        pos[0] + generated_sign_img.width,
+                        pos[1] + generated_sign_img.height,
+                    ),
                     ps,
                 ):
                     intersects = True
@@ -113,8 +180,8 @@ for file in files:
                 continue
 
             BRIGHTNESS_MATCH_PADDING = 10
-            xmax = pos[0] + sign_img.width
-            ymax = pos[1] + sign_img.height
+            xmax = pos[0] + generated_sign_img.width
+            ymax = pos[1] + generated_sign_img.height
             area_slice = generate_variants.get_bg_rect(
                 background, pos[0], pos[1], xmax, ymax, BRIGHTNESS_MATCH_PADDING
             )
@@ -124,9 +191,11 @@ for file in files:
             if area_brightness > ACCEPTED_BRIGHTNESS_THRESHOLD:
                 continue
 
-            sign_img = generate_variants.match_brightness(sign_img, area_slice)
+            generated_sign_img = generate_variants.match_brightness(
+                generated_sign_img, area_slice
+            )
 
-            background.paste(sign_img, pos, sign_img)
+            background.paste(generated_sign_img, pos, generated_sign_img)
             # shape = [(pos[0], pos[1]), (xmax, ymax)]
             # img.rectangle(shape, outline="red", width=3)
 
@@ -156,3 +225,5 @@ for file in files:
 
 
 annotation_file.close()
+
+print("\n\nDONE")

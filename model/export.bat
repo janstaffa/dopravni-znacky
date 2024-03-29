@@ -1,1 +1,1 @@
-python models/research/object_detection/export_tflite_graph_tf2.py --trained_checkpoint_dir=../dataset/model/training --output_directory=../dataset/model --pipeline_config_path=../dataset/config/pipeline_file.config
+python models\research\object_detection\export_tflite_graph_tf2.py --trained_checkpoint_dir=training\mobilenet-resized --output_directory=saved_models\mobilenet-resized --pipeline_config_path=config\pipelines\resized\pipeline_file_ssd_mobilenet_v2_320x320.config

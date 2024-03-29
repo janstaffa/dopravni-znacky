@@ -1,3 +1,5 @@
+# Extracts empty images from the GTSDB dataset
+
 import argparse
 import glob
 from PIL import Image
@@ -6,7 +8,7 @@ import csv
 
 parser = argparse.ArgumentParser()
 
-# -db DATABASE -u USERNAME -p PASSWORD -size 20
+
 parser.add_argument(
     "-in",
     "--input",
@@ -39,7 +41,7 @@ for f in glob.iglob(os.path.join(args.input, "*.ppm")):
         img = Image.open(f)
 
         cropped = img.crop((2, 2, img.width - 2, img.height))
-        cropped.save(os.path.join(args.output, str(count).rjust(4, "0") + "_2.png"))
+        cropped.save(os.path.join(args.output, str(count).rjust(4, "0") + ".png"))
         count += 1
         print("Extracted: " + f)
 

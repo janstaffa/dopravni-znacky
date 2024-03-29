@@ -1,8 +1,11 @@
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw
 import random
 import scipy
 import numpy as np
 import cv2
+import skimage.transform
+import matplotlib.pyplot as plt
+import math
 
 # Rotation
 MAX_ROTATION = 5.0
@@ -58,9 +61,6 @@ def blur_rnd(src, prob):
     return blur(src, radius)
 
 
-input_path = "znacky/02/001.png"
-
-
 # Noise
 
 MAX_NOISE = 100
@@ -84,7 +84,7 @@ def noise(src, count):
             else (new_pixel[0], new_pixel[1], new_pixel[2], val[3])
         )
         src.putpixel((x_coord, y_coord), new_val)
-        
+
     for _ in range(half):
         x_coord = random.randint(0, src.width - 1)
         y_coord = random.randint(0, src.height - 1)
@@ -111,37 +111,80 @@ def noise_rnd(src, prob):
     return noise(src, count)
 
 
-# Rotate 3D
-# ref: https://stackoverflow.com/a/50377574
-def random_rotation_3d(src, angle):
+# Location => 0-7
+def crop_edge(src, location, relative_thickness):
+    assert location >= 0 and location <= 7
+    assert relative_thickness >= 0 and relative_thickness <= 1
 
-    open_cv_image = np.array(src)
-    # Locate points of the documents
-    # or object which you want to transform
-    pts1 = np.float32(
-        [[0, 0], [src.width, 0], [0, src.height], [src.width, src.height]]
-    )
-    pts2 = np.float32([[0, 0], [5, 0], [0, 10], [5, 10]])
+    absolute_thickness_w = src.width * relative_thickness
+    absolute_thickness_h = src.height * relative_thickness
 
-    # Apply Perspective Transform Algorithm
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    result = cv2.warpPerspective(open_cv_image, matrix, (10, 10))
+    crop_polygons = [
+        [(absolute_thickness_w, 0), (0, absolute_thickness_h), (0, 0)],
+        [
+            (0, absolute_thickness_h / 2),
+            (src.width, absolute_thickness_h / 2),
+            (src.width, 0),
+            (0, 0),
+        ],
+        [
+            (src.width - absolute_thickness_w, 0),
+            (src.width, absolute_thickness_h),
+            (src.width, 0),
+        ],
+        [
+            (src.width - absolute_thickness_w / 2, 0),
+            (src.width - absolute_thickness_w / 2, src.height),
+            (src.width, src.height),
+            (src.width, 0),
+        ],
+        [
+            (src.width, src.height - absolute_thickness_h),
+            (src.width - absolute_thickness_w, src.height),
+            (src.width, src.height),
+        ],
+        [
+            (0, src.height - absolute_thickness_h / 2),
+            (src.width, src.height - absolute_thickness_h / 2),
+            (src.width, src.height),
+            (0, src.height),
+        ],
+        [
+            (0, src.height - absolute_thickness_h),
+            (absolute_thickness_w, src.height),
+            (0, src.height),
+        ],
+        [
+            (absolute_thickness_w / 2, 0),
+            (absolute_thickness_w / 2, src.height),
+            (0, src.height),
+            (0, 0),
+        ],
+    ]
+    polygon = crop_polygons[location]
 
-    cv2.imshow("frame", result)  # Initial Capture
+    img_draw = ImageDraw.Draw(src)
+    img_draw.polygon(polygon, fill=(0, 0, 0, 0))
+    return src
 
-    # # rotate along y-axis
-    # angle = random.uniform(-max_angle, max_angle)
-    # image3 = scipy.ndimage.rotate(image2, angle, mode='nearest', axes=(0, 2), reshape=False)
 
-    # # rotate along x-axis
-    # angle = random.uniform(-max_angle, max_angle)
-    # image4 = scipy.ndimage.rotate(image3, angle, mode='nearest', axes=(1, 2), reshape=False)
-    return Image.fromarray(result).convert("RGBA")
+MIN_CROP = 0.1
+MAX_CROP = 0.4
+
+
+def crop_edge_rnd(src, prob):
+    if random.uniform(0.0, 1.0) > prob:
+        return src
+
+    location = random.randint(0, 7)
+    thickness = random.uniform(MIN_CROP, MAX_CROP)
+    return crop_edge(src, location, thickness)
 
 
 # Resize
 MIN_SIZE = 20
 MAX_SIZE = 50
+LARGE_PROB = 1 / 20
 
 
 def resize(img, size):
@@ -151,15 +194,24 @@ def resize(img, size):
 def resize_rnd(src, prob):
     if random.uniform(0.0, 1.0) > prob:
         return src
-    size = random.randint(MIN_SIZE, MAX_SIZE)
+
+    size_from, size_to = MIN_SIZE, MAX_SIZE
+
+    if random.uniform(0.0, 1.0) < LARGE_PROB:
+        size_from = MAX_SIZE
+        size_to = MAX_SIZE * 2
+
+    size = random.randint(size_from, size_to)
     return resize(src, size)
 
 
 def generate_sign_variant(img):
-    img = rotate_rnd(img, 0.5)
+    img = rotate_rnd(img, 1/2)
     # img = brightness_rnd(img)
-    img = blur_rnd(img, 0.2)
-    img = noise_rnd(img, 0.15)
+    img = blur_rnd(img, 1/5)
+    img = noise_rnd(img, 1/6)
+    img = crop_edge_rnd(img, 1/15)
+
     # img = random_rotation_3d(img, 49)
 
     img = resize_rnd(img, 1)
@@ -204,11 +256,15 @@ def get_bg_rect(src, xmin, ymin, xmax, ymax, pad):
     return src.crop((crop_xmin, crop_ymin, crop_xmax, crop_ymax))
 
 
+import time
 def main():
+    input_path = "data/znacky/16/003.png"
     input = Image.open(input_path)
-
-    img = generate_sign_variant(input)
-    img.show()
+        
+    for i in range(10):
+        img = generate_sign_variant(input.copy())
+        img.show()
+        img = None
 
 
 if __name__ == "__main__":

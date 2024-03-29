@@ -1,3 +1,5 @@
+# Resizes images to correct size and shuffles them
+
 import argparse
 import glob
 import random
@@ -9,11 +11,11 @@ import shutil
 
 parser = argparse.ArgumentParser()
 
-# -db DATABASE -u USERNAME -p PASSWORD -size 20
 parser.add_argument(
     "-dir", "--directory", help="Input directory (should contain images)"
 )
-
+parser.add_argument("-off", "--offset", help="Starting offset for file numbering")
+parser.add_argument("-f", "--flip", action="store_true")
 
 args = parser.parse_args()
 
@@ -31,6 +33,9 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         files.append(os.path.join(args.directory, f))
 
     count = 1
+    if args.offset != None:
+        count = int(args.offset)
+
     if len(files) == 0:
         print("No files found")
         exit(0)
@@ -70,13 +75,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
 
                 cropped = img.crop((rect_left, rect_top, rect_right, rect_bottom))
                 resized = cropped.resize(TARGET_RESOLUTION)
-                # resized = img
-                # canvas = ImageDraw.Draw(resized)
-                # canvas.rectangle(
-                #     (rect_left, rect_top, rect_right, rect_bottom),
-                #     outline="red",
-                #     width=3,
-                # )
 
             else:
                 print(f"Found smaller image: {img.width}x{img.height}px")
@@ -84,12 +82,10 @@ with tempfile.TemporaryDirectory() as tmpdirname:
 
         resized.save(os.path.join(tmpdirname, str(count).rjust(4, "0") + ".png"))
 
-        flipped = resized.transpose(Image.FLIP_LEFT_RIGHT)
-        flipped.save(os.path.join(tmpdirname, str(count).rjust(4, "0") + "_f.png"))
-        # flipped.save(
-        #     os.path.join(tmpdirname, str(count).rjust(4, "0") + "_flipped.png")
-        # )
-        
+        if args.flip == True:
+            flipped = resized.transpose(Image.FLIP_LEFT_RIGHT)
+            flipped.save(os.path.join(tmpdirname, str(count).rjust(4, "0") + "_f.png"))
+
         count += 1
 
         print("Converting file: ", f)
@@ -106,6 +102,8 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     random.shuffle(tmp_files)
 
     count = 1
+    if args.offset != None:
+        count = int(args.offset)
     for f in tmp_files:
         shutil.copyfile(
             f, os.path.join(args.directory, str(count).rjust(4, "0") + ".png")

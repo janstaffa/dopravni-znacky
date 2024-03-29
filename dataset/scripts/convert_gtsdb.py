@@ -1,3 +1,4 @@
+# Extracts viable images from the GTSDB dataset and resizes to correct size
 import argparse
 import glob
 from PIL import Image
@@ -87,7 +88,6 @@ CLASS_MAP = {
 ANNOTATION_FILE_NAME = "gt.txt"
 parser = argparse.ArgumentParser()
 
-# -db DATABASE -u USERNAME -p PASSWORD -size 20
 parser.add_argument(
     "-in", "--input", help="Input directory (should contain gtsdb dataset)"
 )
@@ -136,11 +136,11 @@ if len(files) == 0:
 # remove files that have unsupported signs
 filtered_files = files.copy()
 for key, ann in files.items():
-    is_valid = True
+    is_valid = False
     for a in ann:
         class_id = int(a[4])
-        if not class_id in ACCEPTED_CLASSES:
-            is_valid = False
+        if class_id in ACCEPTED_CLASSES:
+            is_valid = True
             break
 
     if not is_valid:
@@ -264,8 +264,12 @@ for f in filtered_files:
     resized.save(os.path.join(args.output, new_file_name))
 
     for i in range(len(transposed_signs)):
+        gtsdb_class_id = int(filtered_files[f][i][4])
+        if not gtsdb_class_id in CLASS_MAP.keys():
+            continue
+        
         # convert to my class ids
-        class_id = CLASS_MAP[int(filtered_files[f][i][4])]
+        class_id = CLASS_MAP[gtsdb_class_id]
         row = [
             new_file_name,
             transposed_signs[i][0],

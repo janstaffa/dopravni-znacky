@@ -1,3 +1,5 @@
+# Shuffles dataset in place
+
 import argparse
 import glob
 import random
@@ -14,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-dir", "--directory", help="Input directory (should contain images)"
 )
+parser.add_argument("-off", "--offset", help="Starting offset for file numbering")
 
 
 args = parser.parse_args()
@@ -75,6 +78,9 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     writer.writerow(ANNOTATION_FILE_HEADER)
 
     count = 1
+    if args.offset != None:
+        count = int(args.offset)
+
     for f in shuffled_order:
         new_name = str(count).rjust(4, "0") + ".png"
         old_path = os.path.join(args.directory, f)

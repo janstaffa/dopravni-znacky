@@ -10,6 +10,21 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("-src", "--source", help="Input video file")
 parser.add_argument("-out", "--output", help="Output directory")
+parser.add_argument("-off", "--offset", help="Offset for image numbering")
+parser.add_argument(
+    "-xoff", "--xoffset", help="Offset in pixels for the x axis (shifts along x axis)"
+)
+
+parser.add_argument(
+    "-out2", "--output2", help="Output directory 2 (saves to when backspace is pressed)"
+)
+parser.add_argument(
+    "-off2", "--offset2", help="Offset for image numbering for directory 2"
+)
+
+parser.add_argument(
+    "-skip", "--skip", help="Number of frames to skip"
+)
 
 args = parser.parse_args()
 
@@ -28,7 +43,8 @@ if not os.path.exists(args.output):
 
 print(
     """
-      enter -> export current frame
+      enter -> export current frame to dir 1
+      backspace -> export current frame to dir 2
       space -> play/pause
       > -> increase playback speed
       < -> decrease playback speed
@@ -45,13 +61,35 @@ current_fps = DEFAULT_FPS
 is_playing = True
 
 
-count = 1
+xoffset = 0
+if not args.xoffset == None:
+    xoffset = int(args.xoffset)
 
+count = 1
+if args.offset != None:
+    count = int(args.offset)
+
+
+count2 = 1
+if args.offset2 != None:
+    count2 = int(args.offset2)
+
+skip_count = 0
+if args.skip != None:
+    skip_count = int(args.skip)
+
+i = 0
 # Read until video is completed
 while cap.isOpened():
     if is_playing:
         # Capture frame-by-frame
         ret, frame = cap.read()
+
+        if i == skip_count:
+            i = 0
+            continue
+        i += 1
+        
         raw_resized_frame = None
         if ret == True:
 
@@ -68,7 +106,7 @@ while cap.isOpened():
                 ):
 
                     a = img.width
-                    b = img.height
+                    b = img.height# - 35
                     c = TARGET_RESOLUTION[0]
                     d = TARGET_RESOLUTION[1]
 
@@ -90,7 +128,14 @@ while cap.isOpened():
                     rect_right = int(center_x + new_w / 2)
                     rect_bottom = int(center_y + new_h / 2)
 
-                    cropped = img.crop((rect_left, rect_top, rect_right, rect_bottom))
+                    cropped = img.crop(
+                        (
+                            rect_left + xoffset,
+                            rect_top,
+                            rect_right + xoffset,
+                            rect_bottom,
+                        )
+                    )
                     raw_resized_frame = cropped.resize(TARGET_RESOLUTION)
                 else:
                     raw_resized_frame = img.resize(TARGET_RESOLUTION)
@@ -132,6 +177,14 @@ while cap.isOpened():
             print(f"Saved frame to file: {out_file_path}")
             count += 1
             pass
+    elif key == 8:
+        if args.output2 != None:
+            if not raw_resized_frame == None:
+                out_file_path = os.path.join(args.output2, str(count2) + ".png")
+                raw_resized_frame.save(out_file_path)
+                print(f"Saved frame to file: {out_file_path}")
+                count2 += 1
+                pass
     elif key == -1:
         pass
     else:

@@ -1,3 +1,4 @@
+# Converts images in .ppm format to .png
 import argparse
 import glob
 from PIL import Image
@@ -5,7 +6,6 @@ import os
 
 parser = argparse.ArgumentParser()
 
-# -db DATABASE -u USERNAME -p PASSWORD -size 20
 parser.add_argument(
     "-in", "--input", help="Input directory (should contain .ppm images)"
 )
