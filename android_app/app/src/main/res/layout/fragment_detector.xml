@@ -130,19 +130,19 @@
                     app:layout_constraintTop_toTopOf="parent">
 
                     <TextView
-                        android:id="@+id/fpsDisplay"
-                        android:layout_width="match_parent"
+                        android:id="@+id/avgFpsDisplay"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="FPS"
+                        android:text="Avg FPS"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent" />
 
                     <TextView
                         android:id="@+id/inferenceTimeDisplay"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Inferrence time"
+                        android:text="Inference time"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent" />

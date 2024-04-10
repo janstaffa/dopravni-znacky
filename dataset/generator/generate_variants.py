@@ -212,8 +212,6 @@ def generate_sign_variant(img):
     img = noise_rnd(img, 1/6)
     img = crop_edge_rnd(img, 1/15)
 
-    # img = random_rotation_3d(img, 49)
-
     img = resize_rnd(img, 1)
 
     return img
@@ -258,12 +256,13 @@ def get_bg_rect(src, xmin, ymin, xmax, ymax, pad):
 
 import time
 def main():
-    input_path = "data/znacky/16/003.png"
+    input_path = "data/znacky/16/002.png"
     input = Image.open(input_path)
         
-    for i in range(10):
+    for i in range(1):
         img = generate_sign_variant(input.copy())
         img.show()
+        img.save("img.png")
         img = None
 
 

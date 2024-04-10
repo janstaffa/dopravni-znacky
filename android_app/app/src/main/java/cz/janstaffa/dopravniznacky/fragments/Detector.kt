@@ -29,11 +29,9 @@ import cz.janstaffa.dopravniznacky.ObjectDetectorHelper
 import cz.janstaffa.dopravniznacky.R
 import cz.janstaffa.dopravniznacky.databinding.FragmentDetectorBinding
 import org.tensorflow.lite.task.gms.vision.detector.Detection
-import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.LinkedList
 import java.util.Locale
-import java.util.Timer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -43,6 +41,7 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
     private val TAG = "CameraFragment"
     private val DEFAULT_TIMEOUT = 5000L
+    private val AVG_FPS_WINDOW = 50
 
     private var _fragmentCameraBinding: FragmentDetectorBinding? = null
 
@@ -93,6 +92,10 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         "omezení rychlosti - 70",
     )
 
+
+    private var fpsList = ArrayList<Double>()
+
+    private var fpsLimit = 30
     override fun onResume() {
         super.onResume()
         // Make sure that all permissions are still present, since the
@@ -162,6 +165,22 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
         fragmentCameraBinding.optionsLayoutWrap.ttsEnabled.setOnCheckedChangeListener { _, isChecked ->
             ttsEnabled = isChecked
+        }
+
+        fragmentCameraBinding.optionsLayoutWrap.limitfpsMinus.setOnClickListener {
+            if (fpsLimit > 0) {
+                fpsLimit -= 1
+                updateControlsUi()
+                fpsList.clear()
+            }
+        }
+
+        fragmentCameraBinding.optionsLayoutWrap.limitfpsPlus.setOnClickListener {
+            if (fpsLimit < 1000) {
+                fpsLimit += 1
+                updateControlsUi()
+                fpsList.clear()
+            }
         }
 
         fragmentCameraBinding.optionsLayoutWrap.timeoutMinus.setOnClickListener {
@@ -265,7 +284,7 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             String.format("%.2f", objectDetectorHelper.threshold)
         fragmentCameraBinding.optionsLayoutWrap.threadsValue.text =
             objectDetectorHelper.numThreads.toString()
-
+        fragmentCameraBinding.optionsLayoutWrap.limitfpsValue.text = fpsLimit.toString()
         val signTimeoutVal = "${(signTimeout / 1000).toInt()}s"
         fragmentCameraBinding.optionsLayoutWrap.timeoutValue.text = signTimeoutVal
 
@@ -375,14 +394,14 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
         val calendar = Calendar.getInstance()
 
+        val now = calendar.timeInMillis
+        val timeDelta = now - lastFrameTime
+
         if (lastFrameTime == 0L) {
             lastFrameTime = calendar.timeInMillis
         } else {
-            val now = calendar.timeInMillis
-            val timeDelta = now - lastFrameTime
-
-            // Log.d(TAG, "TIME DELTA $timeDelta")
-
+            // skip this frame if detections are over fps limit
+            if(timeDelta < 1000 / fpsLimit) return 
             val newDetectedSigns = ArrayList<DetectedSign>()
 
             for (i in detectedSigns.indices) {
@@ -396,14 +415,24 @@ class DetectorFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         }
 
         activity?.runOnUiThread {
-            fragmentCameraBinding.optionsLayoutWrap.inferenceTimeVal.text =
-                String.format("%d ms", inferenceTime)
+            val infTimeFmt = String.format("%d ms", inferenceTime)
+            fragmentCameraBinding.optionsLayoutWrap.inferenceTimeVal.text = infTimeFmt
+            fragmentCameraBinding.inferenceTimeDisplay.text = "Inference time: $infTimeFmt"
 
 
-            val fps = 1000.0 / inferenceTime
-            fragmentCameraBinding.fpsDisplay.text = String.format("FPS: %.2f", fps)
-            fragmentCameraBinding.inferenceTimeDisplay.text =
-                String.format("Inference time: %d ms", inferenceTime)
+            val fps = 1000.0 / timeDelta
+            if(fpsList.size == AVG_FPS_WINDOW) {
+                fpsList.removeAt(0)
+            }
+            fpsList.add(fps)
+
+            //Log.d(TAG, "FPS50 size: ${fpsList.size}")
+
+            val avgFps = fpsList.sum() / fpsList.size
+
+
+            fragmentCameraBinding.avgFpsDisplay.text =
+                String.format("Avg FPS: %.2f", avgFps)
 
             fragmentCameraBinding.signDetailDisplay.removeAllViews()
 
